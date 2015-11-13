@@ -19,6 +19,12 @@ class GoogleTranslateClient {
     private static final String LANGUAGE_SUFFIX = "/languages?";
     private static final String DETECT_SUFFIX = "/detect?";
 
+    // Translation billing rate in dollars per character
+    protected static final float TRANSLATE_BILLING_RATE = 20 / 1000000;
+
+    // Language detection billing rate in dollars per character
+    protected static final float DETECT_BILLING_RATE = 20 / 1000000;
+
     private final String apiParameter;
 
     protected GoogleTranslateClient(String apiToken) {
