@@ -25,7 +25,24 @@ public class StataTranslate {
         return 0;
     }
 
+    public static int getSupportedLanguages(String[] args) {
 
+        String key = args[0];
+
+        GoogleTranslateClient client = new GoogleTranslateClient(key);
+
+        SFIToolkit.display("The Google Translate API supports the following languages:\n\n");
+
+        // Display table in Stata
+        String format = "|%1$-10s|%2$-10s|\n";
+        SFIToolkit.display(String.format(format, "Code", "Name"));
+        SFIToolkit.display("____________________");
+
+        for (String s : client.supportedLanguages().keySet())
+            SFIToolkit.display(String.format(format, s, client.supportedLanguages().get(s)));
+
+        return 0;
+    }
 
     public static int estimateTranslateCost(String[] args) {
         return estimateCost(args, TRANSLATE_METHOD);

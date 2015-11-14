@@ -4,10 +4,7 @@ package com.kugelmass.elan.stata.translate;
  * Created by elan on 11/10/15.
  */
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -28,9 +25,36 @@ class GoogleTranslateClient {
     protected static final double DETECT_BILLING_RATE = 20.0 / 1000000;
 
     private final String apiParameter;
+    private final Map<String, String> supportedLanguages;
 
     protected GoogleTranslateClient(String apiToken) {
         this.apiParameter = "key=" + apiToken;
+
+        // Cache supported languages
+        String result = TEMPLATE.getForObject(
+                BASE_URL + LANGUAGE_SUFFIX + apiParameter + "&target=en",
+                String.class);
+
+        JsonObject o = new JsonParser().parse(result).getAsJsonObject();
+
+        JsonArray a = o.get("data").getAsJsonObject()
+                .get("languages").getAsJsonArray();
+
+        this.supportedLanguages = new HashMap<>();
+
+        for (JsonElement e : a)
+            supportedLanguages.put(
+                    e.getAsJsonObject().get("language").getAsString(),
+                    e.getAsJsonObject().get("name").getAsString());
+
+    }
+
+    protected Map<String, String> supportedLanguages() {
+        return new HashMap<>(supportedLanguages);
+    }
+
+    protected boolean isLanguageSupported(String lang) {
+        return this.supportedLanguages.containsKey(lang);
     }
 
     protected String translate(String fromLanguage, String toLanguage, String query) {
