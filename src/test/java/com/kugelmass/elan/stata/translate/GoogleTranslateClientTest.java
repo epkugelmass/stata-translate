@@ -16,7 +16,18 @@ public class GoogleTranslateClientTest {
 
         assertEquals("colegio", client.translate("en", "es", "school"));
 
-        return;
+    }
+
+    @org.junit.Test
+    public void testDetect() throws Exception {
+
+        String key = Settings.SECRET_KEY;
+
+        GoogleTranslateClient client = new GoogleTranslateClient(key);
+
+        GoogleTranslateClient.Detection d = client.detect("colegio");
+
+        assertEquals(d.language, "es");
 
     }
 }

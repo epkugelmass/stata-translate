@@ -4,6 +4,8 @@ package com.kugelmass.elan.stata.translate;
  * Created by elan on 11/10/15.
  */
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.web.client.RestTemplate;
@@ -20,10 +22,10 @@ class GoogleTranslateClient {
     private static final String DETECT_SUFFIX = "/detect?";
 
     // Translation billing rate in dollars per character
-    protected static final float TRANSLATE_BILLING_RATE = 20 / 1000000;
+    protected static final double TRANSLATE_BILLING_RATE = 20.0 / 1000000;
 
     // Language detection billing rate in dollars per character
-    protected static final float DETECT_BILLING_RATE = 20 / 1000000;
+    protected static final double DETECT_BILLING_RATE = 20.0 / 1000000;
 
     private final String apiParameter;
 
@@ -52,6 +54,39 @@ class GoogleTranslateClient {
                 .get("translatedText").getAsString();
 
         return translatedString;
+    }
+
+    protected Detection detect(String query) {
+
+        String result = TEMPLATE.getForObject(
+                BASE_URL + DETECT_SUFFIX + apiParameter +
+                        "&q={query}",
+                String.class, query);
+
+        JsonObject o = new JsonParser().parse(result).getAsJsonObject();
+
+        // Object documentation: https://cloud.google.com/translate/v2/using_rest#WorkingResults
+        o = o.get("data").getAsJsonObject()
+                .get("detections").getAsJsonArray()
+                .get(0).getAsJsonArray()
+                .get(0).getAsJsonObject();
+
+        o.addProperty("query", query);
+        o.remove("isReliable");
+
+        return new Gson().fromJson(o, Detection.class);
+    }
+
+    public class Detection {
+        public final String language;
+        public final Double confidence;
+        public final String query;
+
+        public Detection(String language, Double confidence, String query) {
+            this.language = language;
+            this.confidence = confidence;
+            this.query = query;
+        }
     }
 
 }

@@ -64,7 +64,7 @@ public class StataTranslate {
             }
         }
 
-        float billingRate;
+        double billingRate;
         switch (method) {
             case TRANSLATE_METHOD:
                 billingRate = GoogleTranslateClient.TRANSLATE_BILLING_RATE;
@@ -76,7 +76,7 @@ public class StataTranslate {
                 throw new RuntimeException("Invalid Google Translate method selected");
         }
 
-        float cost = chars * billingRate;
+        double cost = chars * billingRate;
 
         SFIToolkit.display("The estimated cost is USD" + String.format("%.2f", cost));
         Scalar.setValue("cost", cost);
