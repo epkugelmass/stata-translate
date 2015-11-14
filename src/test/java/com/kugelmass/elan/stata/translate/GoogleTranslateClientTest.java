@@ -30,4 +30,15 @@ public class GoogleTranslateClientTest {
         assertEquals(d.language, "es");
 
     }
+
+    @org.junit.Test
+    public void testIsLanguageSupported() throws Exception {
+
+        String key = Settings.SECRET_KEY;
+
+        GoogleTranslateClient client = new GoogleTranslateClient(key);
+
+        assertTrue(client.isLanguageSupported("en"));
+
+    }
 }
