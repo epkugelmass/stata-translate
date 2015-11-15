@@ -82,6 +82,67 @@ public final class StataTranslate {
         return 0;
     }
 
+    public static int detectLang(String[] args) {
+
+        String key = args[0];
+
+        int nobs1 = Data.getParsedIn1();
+        int nobs2 = Data.getParsedIn2();
+
+        int varcount = Data.getParsedVarCount();
+        if (varcount < 1) {
+            SFIToolkit.error("At least one variable must be specified\n");
+            return 198;
+        }
+
+        int[] varmap = new int[varcount];
+        for (int i = 1; i <= varcount; i++) {
+            varmap[i-1] = Data.mapParsedVarIndex(i);
+            if (!Data.isVarTypeStr(varmap[i-1])) {
+                SFIToolkit.error("All variables must be strings\n");
+                return 198;
+            }
+        }
+
+        int[] detectvarmap = new int[varcount];
+        int[] reliabilityvarmap = new int[varcount];
+        for (int var = 0; var < varcount; var++) {
+            // Attempt to create the new variable for the translated string
+            // If this fails, undo all of our work.
+            String varname = Data.getVarName(varmap[var]);
+            int varlength = Data.getStrVarWidth(varmap[var]);
+            // TODO: Verify that this is a valid variable name
+            int rc = Data.addVarStr(varname + "_detect", 2);
+            rc += Data.addVarDouble(varname + "_detect");
+            if (rc != 0) {
+                for (int i = 0; i < var; i++) {
+                    Data.dropVar(detectvarmap[i]);
+                    Data.dropVar(reliabilityvarmap[i]);
+                }
+                SFIToolkit.error("Could not create _detect or _rel variables for "
+                        + varname + ". It may already defined.\n");
+                return 110;
+            }
+            detectvarmap[var] = Data.getVarIndex(varname + "_detect");
+            reliabilityvarmap[var] = Data.getVarIndex(varname + "rel");
+        }
+
+        GoogleTranslateClient client = new GoogleTranslateClient(key);
+
+        for (int var = 0; var < varcount; var++) {
+            for (int obs = nobs1; obs <= nobs2; obs++) {
+                if (!Data.isParsedIfTrue(obs))
+                    continue;
+                String query = Data.getStr(varmap[var], obs);
+                GoogleTranslateClient.Detection d = client.detect(query);
+                Data.storeStr(detectvarmap[var], obs, d.language);
+                Data.storeNum(reliabilityvarmap[var], obs, d.confidence);
+            }
+        }
+
+        return 0;
+    }
+
     public static int getSupportedLanguages(String[] args) {
 
         String key = args[0];
