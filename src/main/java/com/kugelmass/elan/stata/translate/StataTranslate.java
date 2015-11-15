@@ -8,7 +8,7 @@ import com.stata.sfi.Data;
 import com.stata.sfi.SFIToolkit;
 import com.stata.sfi.Scalar;
 
-public class StataTranslate {
+public final class StataTranslate {
 
     private static final int TRANSLATE_METHOD = 1;
     private static final int DETECT_METHOD = 2;
@@ -17,10 +17,67 @@ public class StataTranslate {
 
     public static int fromLangToLang(String[] args) {
 
-        String fromLang = args[0];
-        String toLang   = args[1];
+        String key      = args[0];
+        String fromLang = args[1];
+        String toLang   = args[2];
+        String varfix   = args[3];
 
+        int nobs1 = Data.getParsedIn1();
+        int nobs2 = Data.getParsedIn2();
 
+        int varcount = Data.getParsedVarCount();
+        if (varcount < 1) {
+            SFIToolkit.error("At least one variable must be specified\n");
+            return 198;
+        }
+
+        int[] varmap = new int[varcount];
+        for (int i = 1; i <= varcount; i++) {
+            varmap[i-1] = Data.mapParsedVarIndex(i);
+            if (!Data.isVarTypeStr(varmap[i-1])) {
+                SFIToolkit.error("All variables must be strings\n");
+                return 198;
+            }
+        }
+
+        int[] newvarmap = new int[varcount];
+        for (int var = 0; var < varcount; var++) {
+            // Attempt to create the new variable for the translated string
+            // If this fails, undo all of our work.
+            String varname = Data.getVarName(varmap[var]);
+            int varlength = Data.getStrVarWidth(varmap[var]);
+            // TODO: Verify that this is a valid variable name
+            int rc = Data.addVarStr(varname + varfix, varlength);
+            if (rc != 0) {
+                for (int i = 0; i < var; i++)
+                    Data.dropVar(newvarmap[i]);
+                SFIToolkit.error("Could not create variable " + varname + varfix
+                        + ". It may already defined.\n");
+                return 110;
+            }
+            newvarmap[var] = Data.getVarIndex(varname + varfix);
+        }
+
+        GoogleTranslateClient client = new GoogleTranslateClient(key);
+
+        if (!client.isLanguageSupported(fromLang)) {
+            SFIToolkit.error(fromLang + " is not a supported language.");
+            return 198;
+        }
+        if (!client.isLanguageSupported(toLang)) {
+            SFIToolkit.error(toLang + " is not a supported language.");
+            return 198;
+        }
+
+        for (int var = 0; var < varcount; var++) {
+            for (int obs = nobs1; obs <= nobs2; obs++) {
+                if (!Data.isParsedIfTrue(obs))
+                    continue;
+                String query = Data.getStr(varmap[var], obs);
+                String result = client.translate(fromLang, toLang, query);
+                Data.storeStr(newvarmap[var], obs, result);
+            }
+        }
 
         return 0;
     }
@@ -66,7 +123,7 @@ public class StataTranslate {
         int[] varmap = new int[varcount];
         for (int i = 1; i <= varcount; i++) {
             varmap[i-1] = Data.mapParsedVarIndex(i);
-            if (!Data.isVarTypeStr(i)) {
+            if (!Data.isVarTypeStr(varmap[i-1])) {
                 SFIToolkit.error("All variables must be strings\n");
                 return 198;
             }
