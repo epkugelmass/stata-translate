@@ -8,6 +8,8 @@ import com.stata.sfi.Data;
 import com.stata.sfi.SFIToolkit;
 import com.stata.sfi.Scalar;
 
+import java.text.NumberFormat;
+
 public final class StataTranslate {
 
     private static final int TRANSLATE_METHOD = 1;
@@ -20,7 +22,7 @@ public final class StataTranslate {
         String key      = args[0];
         String fromLang = args[1];
         String toLang   = args[2];
-        String varfix   = args[3];
+        String varfix   = "_" + toLang;
 
         int nobs1 = Data.getParsedIn1();
         int nobs2 = Data.getParsedIn2();
@@ -154,7 +156,7 @@ public final class StataTranslate {
         // Display table in Stata
         String format = "|%1$-10s|%2$-10s|\n";
         SFIToolkit.display(String.format(format, "Code", "Name"));
-        SFIToolkit.display("____________________");
+        SFIToolkit.display("_______________________\n");
 
         for (String s : client.supportedLanguages().keySet())
             SFIToolkit.display(String.format(format, s, client.supportedLanguages().get(s)));
@@ -213,7 +215,11 @@ public final class StataTranslate {
 
         double cost = chars * billingRate;
 
-        SFIToolkit.display("The estimated cost is USD" + String.format("%.2f", cost));
+        String numChars = NumberFormat.getInstance().format(chars);
+
+        SFIToolkit.displayln("The estimated cost is USD " + String.format("%.2f", cost));
+        SFIToolkit.displayln(numChars + " characters at a rate of USD "
+                + String.format("%.5f", billingRate) + " per character.");
         Scalar.setValue("cost", cost);
 
         return 0;
