@@ -5,9 +5,18 @@ package com.kugelmass.elan.stata.translate;
  */
 
 import com.google.gson.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -118,6 +127,48 @@ class GoogleTranslateClient {
         return translatedString;
     }
 
+    protected List<String> translate(String fromLanguage,
+                                     String toLanguage, List<String> queries) {
+
+        /*
+        TODO: Send a POST request so we can send a longer query
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-HTTP-Method-Override", "GET");
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ...
+        String result = TEMPLATE.postForObject(uri, request, String.class);
+        */
+
+        MultiValueMap<String, String> mvm = new LinkedMultiValueMap<>();
+
+        // TODO: make sure URL is less than 2k characters
+        // Break up into multiple requests if false
+        for (String q : queries)
+            mvm.add("q", q);
+
+        URI uri = UriComponentsBuilder.fromUriString(BASE_URL
+                + TRANSLATE_SUFFIX + apiParameter)
+                .queryParam("source", fromLanguage)
+                .queryParam("target", toLanguage)
+                .queryParams(mvm)
+                .build().toUri();
+
+        String result = TEMPLATE.getForObject(uri, String.class);
+
+        JsonObject o = new JsonParser().parse(result).getAsJsonObject();
+
+        JsonArray arr = o.get("data").getAsJsonObject()
+                         .get("translations").getAsJsonArray();
+
+        List<String> translations = new ArrayList<>();
+
+        for (JsonElement e : arr)
+            translations.add(e.getAsJsonObject().get("translatedText").getAsString());
+
+        return translations;
+    }
+
     /**
      * Get the Google Translate API's best guess at the language of the string.
      * Makes a call to the Google Translate API.
@@ -151,9 +202,9 @@ class GoogleTranslateClient {
      * A class representing the result of the Google Translate API's attempt to
      * detect the language of a string.
      */
-    public class Detection {
+    protected class Detection {
         public final String language;
-        public final Double confidence;
+        public final double confidence;
         public final String query;
 
         /**
@@ -162,7 +213,7 @@ class GoogleTranslateClient {
          * @param confidence Confidence in the guess.
          * @param query The queried string.
          */
-        public Detection(String language, Double confidence, String query) {
+        public Detection(String language, double confidence, String query) {
             this.language = language;
             this.confidence = confidence;
             this.query = query;
