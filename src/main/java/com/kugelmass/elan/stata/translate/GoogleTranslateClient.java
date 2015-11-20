@@ -140,31 +140,55 @@ class GoogleTranslateClient {
         String result = TEMPLATE.postForObject(uri, request, String.class);
         */
 
-        MultiValueMap<String, String> mvm = new LinkedMultiValueMap<>();
-
-        // TODO: make sure URL is less than 2k characters
-        // Break up into multiple requests if false
-        for (String q : queries)
-            mvm.add("q", q);
-
-        URI uri = UriComponentsBuilder.fromUriString(BASE_URL
-                + TRANSLATE_SUFFIX + apiParameter)
+        UriComponentsBuilder baseBuilder =
+                UriComponentsBuilder.fromUriString(BASE_URL
+                        + TRANSLATE_SUFFIX + apiParameter)
                 .queryParam("source", fromLanguage)
-                .queryParam("target", toLanguage)
+                .queryParam("target", toLanguage);
+
+        int baseLength = baseBuilder.toUriString().length();
+
+        List<URI> uriList = new ArrayList<>();
+
+        MultiValueMap<String, String> mvm = new LinkedMultiValueMap<>();
+        int length = baseLength;
+        int queryCount = 0;
+        URI uri;
+
+        for (String q : queries) {
+            // requests may not be longer than 2k chars or request that more
+            // than 128 string be translated
+            if (length + q.length() >= 1900 | queryCount >= 128) {
+                uri = ((UriComponentsBuilder) baseBuilder.clone())
+                        .queryParams(mvm)
+                        .build().toUri();
+                uriList.add(uri);
+                mvm = new LinkedMultiValueMap<>();
+                length = baseLength;
+                queryCount = 0;
+            }
+            mvm.add("q", q);
+            length += q.length() + 3; // "&q="
+            queryCount++;
+        }
+
+        uri = ((UriComponentsBuilder) baseBuilder.clone())
                 .queryParams(mvm)
                 .build().toUri();
-
-        String result = TEMPLATE.getForObject(uri, String.class);
-
-        JsonObject o = new JsonParser().parse(result).getAsJsonObject();
-
-        JsonArray arr = o.get("data").getAsJsonObject()
-                         .get("translations").getAsJsonArray();
+        uriList.add(uri);
 
         List<String> translations = new ArrayList<>();
 
-        for (JsonElement e : arr)
-            translations.add(e.getAsJsonObject().get("translatedText").getAsString());
+        for (int i = 0; i < uriList.size(); i++) {
+            String result = TEMPLATE.getForObject(uriList.get(i), String.class);
+            JsonObject o = new JsonParser().parse(result).getAsJsonObject();
+
+            JsonArray arr = o.get("data").getAsJsonObject()
+                    .get("translations").getAsJsonArray();
+
+            for (JsonElement e : arr)
+                translations.add(e.getAsJsonObject().get("translatedText").getAsString());
+        }
 
         return translations;
     }
