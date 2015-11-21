@@ -127,6 +127,47 @@ class GoogleTranslateClient {
         return translatedString;
     }
 
+    /**
+     * Get the translation of the specified string to a language.
+     * Google guesses the language of the query.
+     * Makes a call to the Google Translate API.
+     *
+     * @param toLanguage The iso639-1 code of the target language.
+     * @param query The string to be translated.
+     * @return A TranslationDetection object: the translated query and
+     *         the detected language.
+     */
+    protected DetectionTranslation translate(String toLanguage, String query) {
+
+        Map<String, String> vars = new HashMap<>();
+        vars.put("to", toLanguage);
+        vars.put("query", query);
+
+        String result = TEMPLATE.getForObject(
+                BASE_URL + TRANSLATE_SUFFIX + apiParameter +
+                        "&target={to}&q={query}",
+                String.class, vars);
+
+        // Object documentation: https://cloud.google.com/translate/v2/using_rest#WorkingResults
+        JsonObject o = new JsonParser().parse(result).getAsJsonObject()
+                .get("data").getAsJsonObject()
+                .get("translations").getAsJsonArray()
+                .get(0).getAsJsonObject();
+
+        return new Gson().fromJson(o, DetectionTranslation.class);
+    }
+
+
+    /**
+     * Get the translation of the specified string from one language to another.
+     * Makes a call to the Google Translate API.
+     *
+     * @param fromLanguage The iso639-1 code of the query's language.
+     * @param toLanguage The iso639-1 code of the target language.
+     * @param queries The strings to be translated.
+     * @return A list of strings of the Google Translate API's attempt at translating.
+     *         Order is guaranteed.
+     */
     protected List<String> translate(String fromLanguage,
                                      String toLanguage, List<String> queries) {
 
@@ -198,7 +239,7 @@ class GoogleTranslateClient {
      * Makes a call to the Google Translate API.
      *
      * @param query The string whose language should be determined.
-     * @return A Detection object the detected language,
+     * @return A Detection object: the detected language,
      *         Google's confidence in the detection, and the original query.
      */
     protected Detection detect(String query) {
@@ -242,6 +283,22 @@ class GoogleTranslateClient {
             this.confidence = confidence;
             this.query = query;
         }
+    }
+
+    /**
+     * A class representing the result of the Google Translate API's attempt to
+     * detect the language of a string and translate it to a target language.
+     */
+    protected class DetectionTranslation {
+        public final String translatedText;
+        public final String detectedSourceLanguage;
+
+        public DetectionTranslation(String translatedText,
+                                    String detectedSourceLanguage) {
+            this.translatedText = translatedText;
+            this.detectedSourceLanguage = detectedSourceLanguage;
+        }
+
     }
 
 }

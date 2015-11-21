@@ -61,6 +61,21 @@ public class GoogleTranslateClientTest {
     }
 
     @org.junit.Test
+    public void testDetectTranslate() {
+
+        String key = Settings.SECRET_KEY;
+
+        GoogleTranslateClient client = new GoogleTranslateClient(key);
+
+        GoogleTranslateClient.DetectionTranslation dt =
+                client.translate("es", "five");
+
+        assertEquals("cinco", dt.translatedText);
+        assertEquals("en", dt.detectedSourceLanguage);
+
+    }
+
+    @org.junit.Test
     public void testDetect() throws Exception {
 
         String key = Settings.SECRET_KEY;
@@ -69,7 +84,7 @@ public class GoogleTranslateClientTest {
 
         GoogleTranslateClient.Detection d = client.detect("colegio");
 
-        assertEquals(d.language, "es");
+        assertEquals("es", d.language);
 
     }
 
