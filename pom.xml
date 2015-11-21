@@ -37,7 +37,7 @@
             <groupId>com.stata.sfi</groupId>
             <artifactId>sfi</artifactId>
             <version>13</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
