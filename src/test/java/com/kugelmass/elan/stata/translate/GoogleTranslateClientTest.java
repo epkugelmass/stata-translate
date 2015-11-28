@@ -1,8 +1,13 @@
 package com.kugelmass.elan.stata.translate;
 
+import org.junit.BeforeClass;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
 import static org.junit.Assert.*;
 
@@ -11,10 +16,50 @@ import static org.junit.Assert.*;
  */
 public class GoogleTranslateClientTest {
 
+    private static String SECRET_KEY;
+
+    @BeforeClass
+    public static void getSecretKey() {
+
+        String result = "";
+        InputStream inputStream = null;
+
+        Properties p = new Properties();
+        String pFilename = "config.properties";
+
+        try {
+
+            inputStream = GoogleTranslateClient.class.getClassLoader()
+                    .getResourceAsStream(pFilename);
+
+            if(inputStream==null){
+                System.out.println("Sorry, unable to find " + pFilename);
+                return;
+            }
+
+            p.load(inputStream);
+            result = p.getProperty("test-key");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        SECRET_KEY = result;
+    }
+
     @org.junit.Test
     public void testTranslate() throws Exception {
 
-        String key = Settings.SECRET_KEY;
+        String key = SECRET_KEY;
 
         GoogleTranslateClient client = new GoogleTranslateClient(key);
 
@@ -25,7 +70,7 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testManyTranslate() throws Exception {
 
-        String key = Settings.SECRET_KEY;
+        String key = SECRET_KEY;
 
         GoogleTranslateClient client = new GoogleTranslateClient(key);
 
@@ -42,7 +87,7 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testManyManyTranslate() throws Exception {
         
-        String key = Settings.SECRET_KEY;
+        String key = SECRET_KEY;
         
         GoogleTranslateClient client = new GoogleTranslateClient(key);
         
@@ -63,7 +108,7 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testDetectTranslate() {
 
-        String key = Settings.SECRET_KEY;
+        String key = SECRET_KEY;
 
         GoogleTranslateClient client = new GoogleTranslateClient(key);
 
@@ -78,7 +123,7 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testDetect() throws Exception {
 
-        String key = Settings.SECRET_KEY;
+        String key = SECRET_KEY;
 
         GoogleTranslateClient client = new GoogleTranslateClient(key);
 
@@ -91,7 +136,7 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testIsLanguageSupported() throws Exception {
 
-        String key = Settings.SECRET_KEY;
+        String key = SECRET_KEY;
 
         GoogleTranslateClient client = new GoogleTranslateClient(key);
 
