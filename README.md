@@ -1,5 +1,4 @@
-###**stata-translate is a tool for translating Stata strings 
- using the Google Translate API**
+###stata-translate is a tool for translating Stata strings using the Google Translate API
 
 ###Overview
 
@@ -21,8 +20,10 @@ here. Until then, follow the instructions for compilation.
 
 Clone this repository and compile using maven: `mvn install` (add
 `-DskipTests` to skip testing). Copy or symlink
-`stata-translate-*-jar-with-dependencies.jar` and 
+`target/stata-translate-*-jar-with-dependencies.jar` and 
 `src/main/stata/gtranslate.ado` to your Stata ado path.
+If you wish to run the junit tests, you must modify `src/main/resources/config.properties`
+to include your Google Translate API key.
 
 ###Use
 
