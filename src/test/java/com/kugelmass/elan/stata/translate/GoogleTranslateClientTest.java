@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
 public class GoogleTranslateClientTest {
 
     private static String SECRET_KEY;
+    private static GoogleTranslateClient CLIENT;
 
     @BeforeClass
     public static void getSecretKey() {
@@ -54,29 +55,22 @@ public class GoogleTranslateClientTest {
         }
 
         SECRET_KEY = result;
+        CLIENT = new GoogleTranslateClient(SECRET_KEY);
     }
 
     @org.junit.Test
     public void testTranslate() throws Exception {
 
-        String key = SECRET_KEY;
-
-        GoogleTranslateClient client = new GoogleTranslateClient(key);
-
-        assertEquals("colegio", client.translate("en", "es", "school"));
+        assertEquals("colegio", CLIENT.translate("en", "es", "school"));
 
     }
 
     @org.junit.Test
     public void testManyTranslate() throws Exception {
 
-        String key = SECRET_KEY;
-
-        GoogleTranslateClient client = new GoogleTranslateClient(key);
-
         List<String> l = Arrays.asList("school", "house", "door");
 
-        List<String> result = client.translate("en", "es", l);
+        List<String> result = CLIENT.translate("en", "es", l);
 
         assertEquals("colegio", result.get(0));
         assertEquals("casa", result.get(1));
@@ -87,17 +81,13 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testManyManyTranslate() throws Exception {
         
-        String key = SECRET_KEY;
-        
-        GoogleTranslateClient client = new GoogleTranslateClient(key);
-        
         List<String> l = new LinkedList<>();
         for (int i = 0; i < 450; i++) { // (4+7)*450 > 3000
             l.add("four");
         }
         l.add("five");
 
-        List<String> result = client.translate("en", "es", l);
+        List<String> result = CLIENT.translate("en", "es", l);
 
         for (int i = 0; i < 450; i++)
             assertEquals("cuatro", result.get(i));
@@ -108,12 +98,8 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testDetectTranslate() {
 
-        String key = SECRET_KEY;
-
-        GoogleTranslateClient client = new GoogleTranslateClient(key);
-
         GoogleTranslateClient.DetectionTranslation dt =
-                client.translate("es", "five");
+                CLIENT.translate("es", "five");
 
         assertEquals("cinco", dt.translatedText);
         assertEquals("en", dt.detectedSourceLanguage);
@@ -123,11 +109,7 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testDetect() throws Exception {
 
-        String key = SECRET_KEY;
-
-        GoogleTranslateClient client = new GoogleTranslateClient(key);
-
-        GoogleTranslateClient.Detection d = client.detect("colegio");
+        GoogleTranslateClient.Detection d = CLIENT.detect("colegio");
 
         assertEquals("es", d.language);
 
@@ -136,11 +118,7 @@ public class GoogleTranslateClientTest {
     @org.junit.Test
     public void testIsLanguageSupported() throws Exception {
 
-        String key = SECRET_KEY;
-
-        GoogleTranslateClient client = new GoogleTranslateClient(key);
-
-        assertTrue(client.isLanguageSupported("en"));
+        assertTrue(CLIENT.isLanguageSupported("en"));
 
     }
 }
