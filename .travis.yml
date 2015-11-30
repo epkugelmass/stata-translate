@@ -1,6 +1,5 @@
 language: java
 jdk:
-- oraclejdk7
 - oraclejdk8
 before_install:
 - openssl aes-256-cbc -K $encrypted_d09bdfb626fb_key -iv $encrypted_d09bdfb626fb_iv
