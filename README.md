@@ -1,4 +1,5 @@
 ###stata-translate is a tool for translating Stata strings using the Google Translate API
+[![Build Status](https://travis-ci.org/epkugelmass/stata-translate.svg?branch=master)](https://travis-ci.org/epkugelmass/stata-translate)
 
 ###Overview
 
@@ -22,8 +23,13 @@ Clone this repository and compile using maven: `mvn install` (add
 `-DskipTests` to skip testing). Copy or symlink
 `target/stata-translate-*-jar-with-dependencies.jar` and 
 `src/main/stata/gtranslate.ado` to your Stata ado path.
+
 If you wish to run the junit tests, you must modify `src/main/resources/config.properties`
 to include your Google Translate API key.
+
+Maven must be able to find your copy of `stata-sfi.jar` for it to compile
+the project. Install the `jar` file to your local maven repository:
+`mvn install:install-file -Dfile=stata-sfi.jar -DgroupId=com.stata.sfi -DartifactId=sfi -Dversion=13 -Dpackaging=jar`
 
 ###Use
 
