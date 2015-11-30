@@ -1,6 +1,12 @@
 language: java
+
 jdk:
 - oraclejdk8
+
+cache:
+  directories:
+    - $HOME/.m2
+
 before_install:
 - openssl aes-256-cbc -K $encrypted_d09bdfb626fb_key -iv $encrypted_d09bdfb626fb_iv
   -in secrets.tar.enc -out secrets.tar -d
